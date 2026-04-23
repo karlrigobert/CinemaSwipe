@@ -1,0 +1,48 @@
+@page "{id:int}"
+@model CinemaSwipe.Pages.Room.ResultModel
+@{
+    ViewData["Title"] = "Winner!";
+}
+<main class="result-page">
+  <div class="result-card">
+    <div class="confetti-header">🎉</div>
+    <h2>Tonight you're watching…</h2>
+
+    @if (Model.Room?.WinnerTitle is not null)
+    {
+      <div class="winner-film">
+        @if (Model.Room.WinnerPoster is not null)
+        {
+          <img src="https://image.tmdb.org/t/p/w500@Model.Room.WinnerPoster"
+               alt="@Model.Room.WinnerTitle" class="winner-poster" />
+        }
+        <h1 class="winner-title">@Model.Room.WinnerTitle</h1>
+      </div>
+
+      <div class="vote-breakdown">
+        <h3>All votes</h3>
+        <div class="vote-list">
+          @foreach (var f in Model.Films.OrderByDescending(f => f.Likes))
+          {
+            <div class="vote-row @(f.TmdbId == Model.Room.WinnerTmdbId ? "winner-row" : "")">
+              <img src="https://image.tmdb.org/t/p/w92@f.PosterPath"
+                   alt="@f.Title" class="mini-poster" />
+              <span class="vote-title">@f.Title</span>
+              <span class="vote-count">♥ @f.Likes</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <a href="/" class="btn btn-primary">Back to home</a>
+        <a href="/Room/Create" class="btn btn-outline">New room</a>
+      </div>
+    }
+    else
+    {
+      <p>No winner yet — something went wrong.</p>
+      <a href="/" class="btn btn-outline">Go home</a>
+    }
+  </div>
+</main>

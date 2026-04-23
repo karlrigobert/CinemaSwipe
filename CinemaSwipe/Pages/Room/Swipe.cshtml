@@ -1,0 +1,100 @@
+@page "{id:int}"
+@model CinemaSwipe.Pages.Room.SwipeModel
+@{
+    ViewData["Title"] = "Swipe!";
+    var film = Model.CurrentFilm;
+}
+<main class="swipe-page">
+  <div class="swipe-header">
+    <span class="progress-label">@Model.VotedCount / @Model.TotalFilms</span>
+    <div class="progress-bar">
+      <div class="progress-fill" style="width:@(Model.VotedCount * 100 / Math.Max(Model.TotalFilms,1))%"></div>
+    </div>
+  </div>
+
+  @if (film is not null)
+  {
+    <div class="card-stack">
+      <div class="film-card" id="filmCard" data-room-film-id="@film.Id">
+        <img src="https://image.tmdb.org/t/p/w500@film.PosterPath"
+             alt="@film.Title" class="poster" onerror="this.src='/img/no-poster.svg'" />
+        <div class="film-info">
+          <h2>@film.Title</h2>
+          <div class="rating">⭐ @film.Rating.ToString("0.0")</div>
+          <p class="overview">@film.Overview</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="swipe-btns">
+      <button class="btn-swipe nope" id="nopeBtn" onclick="vote(false)" title="Nope">✕</button>
+      <button class="btn-swipe like" id="likeBtn" onclick="vote(true)"  title="Like">♥</button>
+    </div>
+    <p class="swipe-hint">Swipe right to like, left to pass</p>
+  }
+  else
+  {
+    <div class="done-waiting">
+      <div class="big-icon">⏳</div>
+      <h3>All done! Waiting for the others…</h3>
+    </div>
+  }
+</main>
+
+<script src="~/js/signalr.min.js"></script>
+<script>
+const roomId = @Model.Room!.Id;
+const conn = new signalR.HubConnectionBuilder().withUrl("/hubs/room").build();
+
+conn.on("RoomDone", () => {
+  window.location.href = `/Room/Result/${roomId}`;
+});
+
+conn.start().then(() => conn.invoke("JoinRoomGroup", String(roomId)));
+
+async function vote(isLike) {
+  const card = document.getElementById("filmCard");
+  if (!card) return;
+  const rfId = card.dataset.roomFilmId;
+
+  // Disable buttons to prevent double-voting
+  document.getElementById("nopeBtn").disabled = true;
+  document.getElementById("likeBtn").disabled = true;
+
+  // Animate
+  card.classList.add(isLike ? "fly-right" : "fly-left");
+  await sleep(350);
+
+  const res = await fetch(`/api/vote`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ roomId, roomFilmId: parseInt(rfId), isLike })
+  });
+
+  if (res.ok) {
+    const data = await res.json();
+    if (data.done) {
+      window.location.href = `/Room/Result/${roomId}`;
+    } else {
+      window.location.href = `/Room/Swipe/${roomId}`;
+    }
+  } else {
+    document.getElementById("nopeBtn").disabled = false;
+    document.getElementById("likeBtn").disabled = false;
+    card.classList.remove("fly-right", "fly-left");
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// Touch / drag support
+let startX = 0;
+const card = document.getElementById("filmCard");
+if (card) {
+  card.addEventListener("touchstart", e => { startX = e.touches[0].clientX; });
+  card.addEventListener("touchend",   e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 60) vote(dx > 0);
+  });
+}
+</script>

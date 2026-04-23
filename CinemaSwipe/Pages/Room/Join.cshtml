@@ -1,0 +1,23 @@
+@page
+@model CinemaSwipe.Pages.Room.JoinModel
+@{
+    ViewData["Title"] = "Join a room";
+}
+<main class="form-page">
+  <div class="form-card">
+    <h2>🔑 Join a room</h2>
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+      <div class="alert">@Model.ErrorMessage</div>
+    }
+    <form method="post">
+      <div class="field">
+        <label for="code">Room code</label>
+        <input id="code" name="Code" type="text" class="input code-input"
+               maxlength="6" placeholder="e.g. ABC123"
+               autocomplete="off" autocapitalize="characters" />
+      </div>
+      <button type="submit" class="btn btn-primary">Join</button>
+    </form>
+  </div>
+</main>

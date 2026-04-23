@@ -1,0 +1,66 @@
+@page "{id:int}"
+@model CinemaSwipe.Pages.Room.LobbyModel
+@{
+    ViewData["Title"] = $"Room {Model.Room!.Code}";
+}
+<main class="lobby-page">
+  <div class="lobby-card">
+    <p class="label">Share this code with friends</p>
+    <div class="room-code">@Model.Room.Code</div>
+    <p class="hint">They go to <strong>@Request.Scheme://@Request.Host/Room/Join</strong> and type this code.</p>
+
+    <div class="member-list" id="memberList">
+      @foreach (var m in Model.Room.Members)
+      {
+        <div class="member-chip" id="member-@m.UserId">
+          @if (m.User?.AvatarUrl is not null)
+          {
+            <img src="@m.User.AvatarUrl" alt="" />
+          }
+          <span>@(m.User?.DisplayName ?? "Guest")</span>
+          @if (m.UserId == Model.Room.HostId) { <span class="badge">Host</span> }
+        </div>
+      }
+    </div>
+
+    @if (Model.IsHost)
+    {
+      <form method="post">
+        <button type="submit" class="btn btn-primary" id="startBtn">
+          Start swiping (@Model.Room.Members.Count players)
+        </button>
+      </form>
+    }
+    else
+    {
+      <p class="waiting">Waiting for the host to start…</p>
+    }
+  </div>
+</main>
+
+<script src="~/js/signalr.min.js"></script>
+<script>
+const roomId  = @Model.Room.Id;
+const isHost  = @(Model.IsHost ? "true" : "false");
+const conn = new signalR.HubConnectionBuilder().withUrl("/hubs/room").build();
+
+conn.on("MemberJoined", (name) => {
+  const chip = document.createElement("div");
+  chip.className = "member-chip";
+  chip.innerHTML = `<span>${name}</span>`;
+  document.getElementById("memberList").appendChild(chip);
+  if (isHost) {
+    const btn = document.getElementById("startBtn");
+    if (btn) {
+      const count = document.querySelectorAll(".member-chip").length;
+      btn.textContent = `Start swiping (${count} players)`;
+    }
+  }
+});
+
+conn.on("SwipingStarted", () => {
+  window.location.href = `/Room/Swipe/${roomId}`;
+});
+
+conn.start().then(() => conn.invoke("JoinRoomGroup", String(roomId)));
+</script>

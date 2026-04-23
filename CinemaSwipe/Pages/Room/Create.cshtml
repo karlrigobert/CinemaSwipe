@@ -1,0 +1,37 @@
+@page
+@model CinemaSwipe.Pages.Room.CreateModel
+@{
+    ViewData["Title"] = "Create a room";
+}
+<main class="form-page">
+  <div class="form-card">
+    <h2>🎬 New movie night</h2>
+    <form method="post">
+      <div asp-validation-summary="ModelOnly" class="alert"></div>
+
+      <fieldset>
+        <legend>What do you want to watch?</legend>
+        <label class="radio-card @(Model.ContentType=="movie"?"active":"")">
+          <input type="radio" name="ContentType" value="movie" @(Model.ContentType=="movie"?"checked":"") />
+          <span>🎥 Movie</span>
+        </label>
+        <label class="radio-card @(Model.ContentType=="series"?"active":"")">
+          <input type="radio" name="ContentType" value="series" @(Model.ContentType=="series"?"checked":"") />
+          <span>📺 Series</span>
+        </label>
+      </fieldset>
+
+      <div class="field">
+        <label for="genre">Genre</label>
+        <select name="Genre" id="genre" class="select">
+          @foreach (var g in CinemaSwipe.Services.TmdbService.GenreIds.Keys)
+          {
+            <option value="@g" selected="@(Model.Genre == g ? "selected" : null)">@g</option>
+          }
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Create room</button>
+    </form>
+  </div>
+</main>

@@ -1,0 +1,23 @@
+@page
+@model CinemaSwipe.Pages.IndexModel
+@{
+    ViewData["Title"] = "CinemaSwipe";
+}
+<main class="hero">
+  <div class="hero-inner">
+    <div class="logo-icon">🎬</div>
+    <h1>CinemaSwipe</h1>
+    <p class="tagline">Swipe together, watch together.</p>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+      <div class="btn-group">
+        <a href="/Room/Create" class="btn btn-primary">Create a room</a>
+        <a href="/Room/Join"   class="btn btn-outline">Join with a code</a>
+      </div>
+    }
+    else
+    {
+      <a href="/Auth/Login" class="btn btn-primary">Sign in with Google to start</a>
+    }
+  </div>
+</main>

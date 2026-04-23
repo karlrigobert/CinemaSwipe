@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>@ViewData["Title"] – CinemaSwipe</title>
+  <link rel="stylesheet" href="~/css/app.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="nav-brand">🎬 CinemaSwipe</a>
+    <div class="nav-right">
+      @if (Context.User.Identity?.IsAuthenticated == true)
+      {
+        <span class="nav-user">@Context.User.Identity.Name</span>
+        <form method="post" action="/Auth/Logout" style="display:inline">
+          @Html.AntiForgeryToken()
+          <button type="submit" class="btn-link">Sign out</button>
+        </form>
+      }
+      else
+      {
+        <a href="/Auth/Login" class="btn btn-outline btn-sm">Sign in</a>
+      }
+    </div>
+  </nav>
+  <div class="page-content">
+    @RenderBody()
+  </div>
+  @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
